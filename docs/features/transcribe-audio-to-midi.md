@@ -1,6 +1,6 @@
 ---
 title: "Transcribe Audio to MIDI"
-status: draft          # draft | approved | implemented
+status: approved        # draft | approved | implemented
 created: 2026-10-11
 updated: 2026-10-11
 ---
