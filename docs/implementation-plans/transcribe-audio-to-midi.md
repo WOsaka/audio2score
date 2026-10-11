@@ -198,7 +198,7 @@ Ausgabe: Dauer, Backend, Fortschritt (Download: Bytes; Transkription: Statuszeil
 
 ## Umsetzungsstand (2026-10-11)
 Schritte 1–11 sind umgesetzt (73 schnelle Tests, 3 Slow-Tests grün, `ruff` sauber). Der Status bleibt `approved`, bis offen ist:
-- Genauigkeitstest (Note-F1 ≥ 0,90): `test_accuracy.py` ist fertig, wird aber ohne MAESTRO-Paare in `data/testset/maestro/` übersprungen. Nicht verifiziert.
+- Genauigkeitstest (Note-F1 ≥ 0,90): **erfüllt** auf drei MAESTRO-v3-Stücken aus dem Test-Split (per HTTP-Range aus dem Zip geladen, in `data/testset/maestro/`): Chopin Etüde Op. 10/9 F1 0,982, Scarlatti K. 525 F1 0,967, Schubert Impromptu Op. 90/4 F1 0,988 (mit Aufräumen; roh 0,981 / 0,965 / 0,988). Einschränkung: Studioqualität; Handy-Aufnahmen und Internet-Mitschnitte sind damit nicht abgedeckt.
 - Manuelle Abnahme: eigene Aufnahme und Internet-Mitschnitt transkribieren und anhören; Offline-Verhalten (Checkpoint umbenennen, Netz trennen).
 - Pedal-Erkennung ist nur mit synthetischem Audio (ohne Pedal) gelaufen, nicht an echtem Klavier.
 - `--no-cache` liest und schreibt den Cache nicht (in der Spec nicht festgelegt).
