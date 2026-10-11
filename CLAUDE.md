@@ -8,7 +8,7 @@ Gesamtplan und Meilensteine: `docs/roadmap.md`.
 
 ## Tech-Stack & Befehle
 
-- Sprache/Framework: Python 3.11, PyTorch (CPU-Build), music21, pretty_midi, librosa, Typer (CLI); extern: ffmpeg, MuseScore 4 (PDF)
+- Sprache/Framework: Python 3.12, PyTorch (CPU-Build), music21, pretty_midi, librosa, Typer (CLI); extern: ffmpeg, MuseScore 4 (PDF)
 - Hardware: **nur CPU** — Ergebnisse der Transkription (Teil A) immer cachen, Teil B muss ohne Modelllauf entwickelbar sein
 - Tests: `pytest`
 - Lint/Format: `ruff check . && ruff format .`

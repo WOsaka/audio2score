@@ -12,7 +12,7 @@ Status: Planungsphase — siehe [`docs/roadmap.md`](docs/roadmap.md).
 
 ## Voraussetzungen
 
-- Python 3.11
+- Python 3.12
 - ffmpeg im `PATH`
 - MuseScore 4 (für PDF-Export)
 
