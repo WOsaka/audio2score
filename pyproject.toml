@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "audio2score"
+dynamic = ["version"]
+description = "Klavieraufnahme rein, Noten raus"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "torch",
+    "piano_transcription_inference==0.0.6",
+    "audioread",
+    "librosa",
+    "soundfile",
+    "imageio-ffmpeg",
+    "pretty_midi",
+    "numpy",
+    "typer",
+]
+
+[project.optional-dependencies]
+# Basic Pitch selbst: pip install --no-deps basic-pitch==0.4.0 (siehe README)
+basic-pitch = [
+    "onnxruntime",
+    "resampy>=0.2.2,<0.4.3",
+    "setuptools<81",
+    "scikit-learn",
+    "scipy",
+    "mir_eval",
+]
+dev = [
+    "pytest",
+    "ruff",
+    "mir_eval",
+]
+
+[project.scripts]
+audio2score = "audio2score.cli:app"
+
+[tool.hatch.version]
+path = "src/audio2score/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/audio2score"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+extend-exclude = ["docs", ".claude"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = '-m "not slow"'
+markers = ["slow: lädt echte Modelle (pytest -m slow)"]
