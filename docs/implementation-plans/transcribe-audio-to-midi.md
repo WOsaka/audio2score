@@ -1,7 +1,7 @@
 ---
 title: "Implementation Plan: Transcribe Audio to MIDI"
 feature_spec: docs/features/transcribe-audio-to-midi.md
-status: pending-approval   # pending-approval | approved | implemented
+status: approved   # pending-approval | approved | implemented
 created: 2026-10-11
 updated: 2026-10-11
 ---
