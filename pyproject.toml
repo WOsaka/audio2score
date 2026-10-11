@@ -57,3 +57,6 @@ select = ["E", "F", "I", "UP", "B"]
 testpaths = ["tests"]
 addopts = '-m "not slow"'
 markers = ["slow: lädt echte Modelle (pytest -m slow)"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["typer.Argument", "typer.Option"]
