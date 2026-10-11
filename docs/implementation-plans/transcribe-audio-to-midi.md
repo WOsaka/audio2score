@@ -196,6 +196,13 @@ Ausgabe: Dauer, Backend, Fortschritt (Download: Bytes; Transkription: Statuszeil
     - Files: `tests/integration/test_accuracy.py`, `README.md`, `docs/roadmap.md`, `docs/features/transcribe-audio-to-midi.md`, dieser Plan
     - Depends on: Step 10
 
+## Umsetzungsstand (2026-10-11)
+Schritte 1–11 sind umgesetzt (73 schnelle Tests, 3 Slow-Tests grün, `ruff` sauber). Der Status bleibt `approved`, bis offen ist:
+- Genauigkeitstest (Note-F1 ≥ 0,90): `test_accuracy.py` ist fertig, wird aber ohne MAESTRO-Paare in `data/testset/maestro/` übersprungen. Nicht verifiziert.
+- Manuelle Abnahme: eigene Aufnahme und Internet-Mitschnitt transkribieren und anhören; Offline-Verhalten (Checkpoint umbenennen, Netz trennen).
+- Pedal-Erkennung ist nur mit synthetischem Audio (ohne Pedal) gelaufen, nicht an echtem Klavier.
+- `--no-cache` liest und schreibt den Cache nicht (in der Spec nicht festgelegt).
+
 ## Test Strategy
 - **Unit** (schnell, Standard-`pytest`, keine Modelle, kein Netzwerk): Datenmodell, Audio laden, Cache, Cleanup, MIDI-Export, Backend-Mapping mit Mocks, CLI mit Fake-Backend.
 - **Integration** (`pytest -m slow`): echte Backends auf kurzem Clip (prüft: läuft auf der CPU, liefert gültige `NoteList`); Genauigkeit auf MAESTRO-Paar (Akzeptanzkriterium F1 ≥ 0,90, Skip ohne Daten); Cache-Treffer < 2 s mit echtem Backend.

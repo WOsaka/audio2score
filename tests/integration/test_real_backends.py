@@ -47,3 +47,21 @@ def test_backend_runs_on_cpu_and_finds_the_melody(backend):
     found = {(n.pitch, round(n.onset, 1)) for n in nl.notes}
     for pitch, onset in [(60, 0.5), (64, 1.5), (67, 2.5)]:
         assert any(p == pitch and abs(o - onset) <= 0.1 for p, o in found), (pitch, onset)
+
+
+def test_cache_hit_with_real_backend_is_fast(tmp_path):
+    import time
+
+    import soundfile as sf
+
+    from audio2score.pipeline import transcribe_file
+
+    wav = tmp_path / "clip.wav"
+    sf.write(wav, synth_clip(), 16_000)
+    first = transcribe_file(wav, cache_dir=tmp_path / "cache")
+    assert not first.cache_hit
+    start = time.perf_counter()
+    second = transcribe_file(wav, cache_dir=tmp_path / "cache")
+    assert second.cache_hit
+    assert time.perf_counter() - start < 2.0
+    assert second.notelist == first.notelist
