@@ -1,17 +1,25 @@
-# <Projektname> — Claude Code Instructions
-
-> Template: Platzhalter `<…>` ersetzen und Abschnitte „Projekt“ und „Tech-Stack“ ausfüllen.
+# audio2score — Claude Code Instructions
 
 ## Projekt
 
-<Ein bis zwei Sätze: Was macht das Projekt, für wen?>
+Hobby-/Lernprojekt: Klavieraufnahmen (eigene Aufnahmen, Internet-Mitschnitte) werden automatisch in Noten umgewandelt — MIDI, MusicXML, PDF und Lead Sheet (Melodie + Akkorde). Stile: Klassik, Pop, Jazz, Improvisation. Zuerst CLI, später Web-Oberfläche.
+
+Gesamtplan und Meilensteine: `docs/roadmap.md`.
 
 ## Tech-Stack & Befehle
 
-- Sprache/Framework: <…>
-- Tests: `<Befehl>`
-- Lint/Format: `<Befehl>`
-- Start lokal: `<Befehl>`
+- Sprache/Framework: Python 3.11, PyTorch (CPU-Build), music21, pretty_midi, librosa, Typer (CLI); extern: ffmpeg, MuseScore 4 (PDF)
+- Hardware: **nur CPU** — Ergebnisse der Transkription (Teil A) immer cachen, Teil B muss ohne Modelllauf entwickelbar sein
+- Tests: `pytest`
+- Lint/Format: `ruff check . && ruff format .`
+- Start lokal: `audio2score --help` (nach `pip install -e .[dev]`)
+
+## Architektur-Leitlinien
+
+- **Teil A** (Audio → Noten-Events) und **Teil B** (Noten-Events → Partitur) strikt getrennt; Teil B akzeptiert auch direkt MIDI.
+- Transkriptions-Backends hinter einem gemeinsamen Protokoll (`transcribe/base.py`), austauschbar.
+- Ein internes Partitur-Modell (music21), mehrere Exporter.
+- Für die Notation Tasten-Offsets verwenden, nicht pedal-verlängerte.
 
 ## Projektstruktur
 
@@ -22,9 +30,14 @@
     debug/          # Debugging-Workflow
   templates/        # MD-Vorlagen für die Skills
 docs/
+  roadmap.md              # Gesamtplan, Meilensteine → Features
   features/               # Feature-Specs (.md)
   implementation-plans/   # Implementierungspläne (.md)
   bugs/                   # Bug-Analysen und Fix-Pläne (.md)
+src/audio2score/          # Paket (entsteht mit dem ersten Feature)
+tests/
+data/testset/             # Testaufnahmen + Referenzen (nicht eingecheckt)
+cache/                    # Teil-A-Ergebnisse (nicht eingecheckt)
 ```
 
 ## Workflow
@@ -43,6 +56,7 @@ docs/
 
 - Dateinamen in kebab-case: `docs/features/<name>.md`, `docs/implementation-plans/<name>.md`, `docs/bugs/<name>-analysis.md`, `<name>-fix-plan.md`
 - Implementierungspläne brauchen `status: approved` im Frontmatter (manuell setzen), bevor `/feature:code` startet.
+- Nach Abschluss eines Features den Status in `docs/roadmap.md` aktualisieren.
 
 ## Git-Arbeitsweise
 
