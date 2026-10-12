@@ -20,6 +20,10 @@ dependencies = [
     "typer",
     "pyyaml",
     "mir_eval",
+    "beat_this",
+    "torchaudio",
+    "music21",
+    "mido",
 ]
 
 [project.optional-dependencies]

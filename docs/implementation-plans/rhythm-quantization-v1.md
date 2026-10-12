@@ -1,7 +1,7 @@
 ---
 title: "Implementation Plan: Rhythmus-Quantisierung v1"
 feature_spec: docs/features/rhythm-quantization-v1.md
-status: pending-approval   # pending-approval | approved | implemented
+status: approved   # pending-approval | approved | implemented
 created: 2026-10-12
 updated: 2026-10-12
 ---
@@ -230,3 +230,12 @@ mido, 480 Ticks pro Viertel, Typ 1: Tempo-Spur + rechte Hand + linke Hand. Pro B
 - **Lizenz**: Code von `beat_this` MIT; Lizenz der Gewichte in Schritt 1 nachsehen und im README vermerken (Hobbyprojekt, nicht kommerziell).
 - **Abweichung von der Spec**: Vorzeichen in music21-Standardschreibweise (gemischt ♯/♭) statt „nur Kreuze“; Marker-Datei für Audacity entfällt.
 - [ ] Reicht für `testset score` die Soll-Taktzahl aus den ASAP-Annotationen, oder soll zusätzlich das Referenz-MusicXML gezählt werden?
+
+## Umsetzungsstand
+
+### Schritt 1 — Spike (2026-10-12)
+- **Installation**: `uv pip install music21 beat_this` zog `torchaudio 2.11.0` nach; `torch` blieb bei 2.14.1. Auf dem CPU-Index gibt es `torchaudio` nur bis 2.11, eine exakt passende Version existiert nicht. Import von `torchaudio` und `beat_this.inference` und die Inferenz laufen trotzdem. M1-Tests: 177 grün.
+- **Gewichte**: `final0.ckpt`, 81 MB, Download beim ersten Lauf nach `~/.cache/torch/hub/checkpoints/` (von `cloud.cp.jku.at`, Fortschritt auf stdout). Paketcode MIT; die Lizenz der Gewichte steht nicht in den Paket-Metadaten (noch nachsehen, vor README-Vermerk).
+- **Rückgabe**: `Audio2Beats(...)(signal, sr)` → `(beats, downbeats)`, zwei `float64`-Arrays in Sekunden. Downbeats werden hier noch nicht auf Beats eingerastet (der Tracker rastet selbst ein).
+- **Laufzeit (CPU)**: Modell laden 7,4 s; BWV 856 (69 s Audio) 3,3 s; Mozart K332 (273 s) 10,3 s, also etwa 0,04 × Echtzeit.
+- **Beat-Ebene bei 3/8 (BWV 856)**: 215 Beats, genau so viele wie in der ASAP-Annotation (Achtel-Beats); 62 von 71 Downbeat-Abständen sind 3 Beats. Die Annahme „Modus n bei n/8 → Beats sind Achtel“ stimmt hier. Mozart K332 (3/4): 223 von 230 Abständen sind 3; 688 Beats gegen 686 in der Referenz.
