@@ -4,7 +4,7 @@ from itertools import groupby
 from audio2score.rhythm.quantize import QNote
 
 SPLIT = 60  # mittleres C
-HYSTERESIS = 5
+HYSTERESIS = 7
 MAX_SPAN = 14  # Halbtöne, die eine Hand in einer Gruppe höchstens greift
 HISTORY = 8  # so viele zuletzt gespielte Noten zählen für den gleitenden Mittelwert
 

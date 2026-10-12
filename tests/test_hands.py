@@ -11,10 +11,10 @@ def pitches(notes):
 
 
 def test_clear_registers_split_at_middle_c_with_hysteresis():
-    notes = [q(72, 0), q(48, 0), q(65, 4), q(55, 4)]
+    notes = [q(72, 0), q(48, 0), q(67, 4), q(53, 4)]
     right, left = split_hands(notes)
-    assert pitches(right) == [72, 65]
-    assert pitches(left) == [48, 55]
+    assert pitches(right) == [72, 67]
+    assert pitches(left) == [48, 53]
 
 
 def test_empty_input_and_empty_hand():

@@ -159,7 +159,7 @@ Noten nach quantisiertem Onset gruppieren. Konstanten `SPLIT = 60`, `HYSTERESIS 
 - Tonhöhe ≥ `SPLIT + HYSTERESIS` → rechts, ≤ `SPLIT − HYSTERESIS` → links.
 - Dazwischen: zur Hand, deren zuletzt gespielte Noten (gleitender Mittelwert) näher liegen; ohne Vorgeschichte entscheidet `SPLIT`.
 - Überschreitet eine Hand in einer Gruppe `MAX_SPAN`, wandert ihre äußerste Note zur anderen Hand zur Mitte hin, solange das dort passt.
-Die Werte werden in Schritt 9 am Testset geprüft und hier nachgetragen.
+Geprüft in Schritt 9: `HYSTERESIS = 7` (statt 5), `SPLIT = 60`, `MAX_SPAN = 14` (siehe Umsetzungsstand).
 
 ### Eine Stimme pro Hand (`voices.py`)
 Gleiche Tonhöhe auf derselben Position → eine Note (längste Dauer, lauteste Velocity). Gleicher Onset → Akkord mit der längsten Dauer der Gruppe. Jede Dauer endet spätestens am nächsten Onset derselben Hand.
@@ -239,3 +239,37 @@ mido, 480 Ticks pro Viertel, Typ 1: Tempo-Spur + rechte Hand + linke Hand. Pro B
 - **Rückgabe**: `Audio2Beats(...)(signal, sr)` → `(beats, downbeats)`, zwei `float64`-Arrays in Sekunden. Downbeats werden hier noch nicht auf Beats eingerastet (der Tracker rastet selbst ein).
 - **Laufzeit (CPU)**: Modell laden 7,4 s; BWV 856 (69 s Audio) 3,3 s; Mozart K332 (273 s) 10,3 s, also etwa 0,04 × Echtzeit.
 - **Beat-Ebene bei 3/8 (BWV 856)**: 215 Beats, genau so viele wie in der ASAP-Annotation (Achtel-Beats); 62 von 71 Downbeat-Abständen sind 3 Beats. Die Annahme „Modus n bei n/8 → Beats sind Achtel“ stimmt hier. Mozart K332 (3/4): 223 von 230 Abständen sind 3; 688 Beats gegen 686 in der Referenz.
+
+### Schritte 2–9 (2026-10-12)
+Umgesetzt mit TDD, 324 Unit-Tests grün (`pytest`), `pytest -m slow` für `test_score_real.py` grün, `ruff` sauber. Schritt 10 (manuelle Abnahme in MuseScore) steht aus; MuseScore ist auf dieser Maschine nicht installiert.
+
+**Abweichungen vom Plan**
+- `Grid` hat zusätzlich `warnings: tuple[str, ...]` und die Eigenschaft `bars` (Warnungen müssen bis in die CLI gelangen).
+- Der Partituranfang ist im Raster enthalten: `Grid.beat_times` beginnt am ersten Beat der Partitur (leere Takte vorher entfallen), `QNote.start` zählt ab dort.
+- Notenwerte zerlegt `score/build.py` selbst (Liste darstellbarer Dauern, Teilung an Beatgrenzen) statt mit `splitAtDurations`; Haltebögen und Balken (`makeBeams`) kommen von music21. Das ist exakt testbar und kennt den Auftakt.
+- `write_musicxml` entfernt den von music21 eingetragenen Komponisten „Music21“ und markiert Takt 0 als `implicit="yes"` (Auftakt).
+- `pipeline.detect_beats` gibt `(Beats, Cache-Treffer)` zurück; `music21` wird in `score_file` erst beim Aufruf importiert (spart ~0,5 s Start der anderen Befehle).
+- `torchaudio` ist auf `2.11.0` festgelegt, dazu `mido` als direkte Abhängigkeit.
+- Tests teilen sich `tests/score_fakes.py` (Fake-Backend und Fake-Tracker).
+- Lizenz der Gewichte geklärt: MIT (README von `CPJKU/beat_this`).
+
+**Handtrennung am Testset** (Übereinstimmung der Hand-Zuordnung je Tonhöhe mit dem Referenz-MusicXML, 6 ASAP-Stücke, Mittel): `HYSTERESIS` 5 → 0,901, 7 → 0,914; `MAX_SPAN` 99 (aus) etwa 1,5 Punkte schlechter als 14. Schwächstes Stück: Debussy (0,74, überkreuzte Hände), Präludium BWV 846 0,93.
+
+**Echtlauf `testset score`** (12 von 12 ok, Exit 0; Takte sind Richtwerte, die Referenz zählt Downbeats der ASAP-Annotation):
+
+| Stück | Taktart ist/soll | Takte ist/soll | Auftakt | Bemerkung |
+|---|---|---|---|---|
+| bach-prelude-bwv846 | 4/4 / 4/4 | 37 / 35 | nein | 31 % unpassende Downbeats |
+| bach-fugue-bwv856 | 3/4 / 3/8 | 75 / 72 | ja | automatisch nur n/4; mit `--time-sig 3/8` stimmt die Beat-Ebene (Achtel, 100 BPM) |
+| mozart-k332-1 | 3/4 / 3/4 | 235 / 229 | nein | 46 % unpassende Downbeats (Phase kippt nach einzelnen Beat-Fehlern) |
+| beethoven-op81a-2 | 4/4 / 2/4 | 46 / 42 | nein | Downbeats fast überall → Standard 4/4 |
+| chopin-etude-op10-5 | 2/4 / 2/4 | 92 / 85 | nein | |
+| debussy-pour-le-piano-1 | 3/4 / 3/4 | 210 / 162 | ja | Rubato, 60 % unpassend |
+| maestro-chopin-etude-10-9 | 4/4 / – | 46 / – | nein | Standard 4/4 (Downbeats unbrauchbar) |
+| maestro-scarlatti-k525 | 2/4 / – | 75 / – | nein | sauber |
+| maestro-schubert-op90-4 | 3/4 / – | 87 / – | ja | |
+| internet-ivanov-nocturne | 2/4 / – | 88 / – | ja | |
+| internet-anthem-of-rain | 4/4 / – | 27 / – | ja | Standard 4/4 |
+| internet-lobo-loco-moonlight | 4/4 / – | 94 / – | ja | Standard 4/4 |
+
+Taktart stimmt bei 4 von 6 Stücken mit Soll-Angabe (Fuge: n/8 nicht automatisch, Beethoven: Beats auf Taktebene). Laufzeit: Beats ≈ 0,04 × Echtzeit, `testset score` komplett 2:36 min beim ersten, 0:49 min beim zweiten Lauf (davon der Großteil music21).
