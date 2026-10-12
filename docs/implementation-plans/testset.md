@@ -195,6 +195,31 @@ Taktarten laut ASAP-Annotationen beim Festlegen prüfen. Ziel: neben 4/4 auch 3/
   - Zusammensetzung → Unit-Test auf dem echten `manifest.yaml` (Anzahl 12–15, jeder Stil, jede Qualität; erst nach Schritt 8 grün)
   - M1-Test → `test_accuracy`
 
+## Umsetzungsstand (2026-10-12)
+Schritte 1–7, 9 und 10 erledigt; Schritt 8 (eigene Aufnahmen) offen, im Manifest stehen Platzhalter.
+
+Baseline `testset baseline` (ByteDance, mit Aufräumen):
+
+| Stück | P | R | F1 | Noten ref/est |
+|---|---|---|---|---|
+| asap-bach-prelude-bwv846 | 0,998 | 1,000 | 0,999 | 548/549 |
+| asap-bach-fugue-bwv856 | 1,000 | 0,995 | 0,997 | 740/736 |
+| asap-mozart-k332-1 | 0,998 | 0,993 | 0,996 | 2506/2493 |
+| asap-beethoven-op81a-2 | 0,990 | 0,993 | 0,991 | 861/864 |
+| asap-chopin-etude-op10-5 | 0,997 | 0,969 | 0,983 | 1618/1573 |
+| asap-debussy-pour-le-piano-1 | 0,984 | 0,945 | 0,964 | 3203/3077 |
+| maestro-chopin-etude-10-9 | 0,991 | 0,972 | 0,982 | 1256/1232 |
+| maestro-scarlatti-k525 | 0,986 | 0,949 | 0,967 | 882/849 |
+| maestro-schubert-op90-4 | 0,988 | 0,988 | 0,988 | 1110/1110 |
+| Mittel (classical = studio, n=9) | 0,992 | 0,978 | 0,985 | |
+
+- Die M1-Werte (Chopin 0,982, Scarlatti 0,967, Schubert 0,988) werden reproduziert; die Schubert-Fassung ist
+  damit die kürzeste (113 s), Abweichung zu M1 gibt es nicht.
+- Versatz ASAP-MIDI ↔ MAESTRO-Audio: null bei `start = 0`; bei der Fuge BWV 856 beginnt die ASAP-MIDI bei
+  `start − 0,5 s`, deshalb `fetch.start: 59.478125`. Dass das stimmt, zeigt auch die F1 von 0,997.
+- Ivanov (Internet) und die drei eigenen Stücke haben keine Referenz, tauchen nur als „keine Referenz“ auf.
+- Echtlauf-Fehler behoben: `check` meldete gültige MP3 als abgeschnitten; `fetch` stürzte ohne `end` ab.
+
 ## Risks & Open Questions
 - **Versatz ASAP-MIDI ↔ MAESTRO-Audio**: Die `start`/`end`-Semantik ist nicht vollständig dokumentiert (bei manchen Zeilen fehlt `start` oder `end`). Gegenmittel: Kontrolle in Schritt 7 und F1-Schwelle im Slow-Test.
 - **Zip-Zugriff per Range**: Python-`zipfile` liest Zip64 korrekt, aber viele kleine Reads wären langsam → `BufferedReader` mit großem Puffer. Ein MAESTRO-WAV ist 50–150 MB, Download-Zeit hängt vom Netz ab.
