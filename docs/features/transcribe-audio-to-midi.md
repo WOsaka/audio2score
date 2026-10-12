@@ -1,8 +1,8 @@
 ---
 title: "Transcribe Audio to MIDI"
-status: approved        # draft | approved | implemented
+status: implemented        # draft | approved | implemented
 created: 2026-10-11
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Feature: Transcribe Audio to MIDI

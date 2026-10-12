@@ -1,7 +1,7 @@
 ---
 title: "Roadmap audio2score"
 created: 2026-10-11
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Roadmap audio2score
@@ -47,7 +47,7 @@ Jeder Meilenstein wird ein Feature im Workflow `/feature:spec` → `/feature:imp
 
 | # | Feature (`docs/features/…`) | Inhalt | Status |
 |---|---|---|---|
-| M0+M1 | `transcribe-audio-to-midi` | Projektgerüst, CPU-Setup, Audio laden, Backends ByteDance + Basic Pitch, NoteList-Modell, Cache, Aufräumen, MIDI-Export, CLI `transcribe` | Spec: approved, Plan: approved — Code umgesetzt, Note-F1 0,97–0,99 auf MAESTRO; offen: manuelle Abnahme |
+| M0+M1 | `transcribe-audio-to-midi` | Projektgerüst, CPU-Setup, Audio laden, Backends ByteDance + Basic Pitch, NoteList-Modell, Cache, Aufräumen, MIDI-Export, CLI `transcribe` | implemented — Note-F1 0,97–0,99 auf MAESTRO, manuell abgenommen (Ivanov-Nocturne, 3 min in 330 s auf CPU) |
 | M2 | `testset` | 10–15 Stücke aller Stile + ASAP-Ausschnitt (Performance-MIDI + Referenz-MusicXML), Manifest-Format | offen |
 | M3 | `rhythm-quantization-v1` | Beats/Downbeats, Taktart, binäre Quantisierung, naive Handtrennung, erstes MusicXML, CLI `score` | offen |
 | M4 | `harmony-and-pdf` | Tonart, Pitch Spelling, PDF-Export über MuseScore, CLI `run` | offen |

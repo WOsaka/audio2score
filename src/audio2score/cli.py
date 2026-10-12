@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import typer
@@ -30,7 +31,10 @@ def main(
         False, "--version", callback=_version, is_eager=True, help="Version anzeigen."
     ),
 ) -> None:
-    pass
+    # Windows-Konsolen nutzen oft cp1252; Umlaute und Gedankenstriche sollen nicht zerfallen.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
 
 
 def _check_backend(value: str) -> str:
