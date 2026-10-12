@@ -51,11 +51,6 @@ def _check_audio(path: Path) -> list[Issue]:
         info = sf.info(path)
         if info.frames == 0:
             return _error(path, "Audio ist leer")
-        # Abgeschnittene Dateien: das Ende muss wirklich lesbar sein
-        with sf.SoundFile(path) as f:
-            f.seek(max(info.frames - 1, 0))
-            if len(f.read(1)) == 0:
-                return _error(path, "Audio ist abgeschnitten")
         return []
     except (sf.LibsndfileError, RuntimeError):
         pass

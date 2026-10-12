@@ -285,3 +285,13 @@ def test_fetch_all_only_filter(server, tmp_path):
     manifest = Manifest(path=tmp_path / "m.yaml", data_dir=tmp_path, entries=[e])
     assert fetch_all(manifest, only=["other"]) == []
     assert [r.status for r in fetch_all(manifest, only=["x"])] == ["ok"]
+
+
+def test_convert_to_flac_without_start_and_end(server, tmp_path):
+    server.routes["/maestro.zip"] = maestro_zip({"2008/a.wav": wav_bytes(2.0)})
+    e = entry(
+        tmp_path, source="asap", audio="asap/x.flac", fetch=FetchSpec(maestro_audio="2008/a.wav")
+    )
+    fetch_entry(e)
+    info = sf.info(e.audio)
+    assert info.format == "FLAC" and info.frames == 2 * SR

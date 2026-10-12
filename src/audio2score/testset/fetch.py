@@ -205,7 +205,7 @@ class Fetcher:
                 start = round((spec.start or 0.0) * rate)
                 stop = None if spec.end is None else round(spec.end * rate)
                 f.seek(min(start, f.frames))
-                data = f.read(None if stop is None else max(stop - start, 0), dtype="int16")
+                data = f.read(-1 if stop is None else max(stop - start, 0), dtype="int16")
             if len(data) == 0:
                 raise FetchError(f"Ausschnitt {spec.start}-{spec.end} s ist leer")
             sf.write(final, data, rate, format=fmt, subtype="PCM_16")
@@ -228,8 +228,6 @@ class Fetcher:
             url = f"{ASAP_BASE_URL}/{urllib.parse.quote(f'{folder}/{name}', safe='/')}"
             _, _, body = _get(url)
             _write_atomic(dest, body)
-            if self.on_progress:
-                self.on_progress(entry.id, len(body), len(body))
             did = True
         return did
 

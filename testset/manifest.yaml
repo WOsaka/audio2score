@@ -1,0 +1,189 @@
+# Testset-Manifest (M2). Beschreibung der Felder und Befehle: testset/README.md
+#
+# ASAP-Einträge: Audio = Ausschnitt aus MAESTRO v3, Referenz = ASAP (Performance-MIDI,
+# MusicXML, Annotationen; Commit afc815c). Die Performance-MIDI beginnt bei `start - 0,5 s`
+# (ASAP-Konvention); bei start = 0 ist der Versatz 0. Geprüft gegen die MAESTRO-MIDI (Schritt 7).
+version: 1
+data_dir: ../data/testset # relativ zu dieser Datei; per --data-dir überschreibbar
+
+entries:
+  # --- ASAP + MAESTRO-Audio (Klassik, Studio) --------------------------------------------
+  - id: asap-bach-prelude-bwv846
+    style: classical
+    source: asap
+    quality: studio
+    audio: asap/bach-prelude-bwv846.flac
+    ref_midi: asap/bach-prelude-bwv846.mid
+    ref_musicxml: asap/bach-prelude-bwv846.musicxml
+    ref_annotations: asap/bach-prelude-bwv846.txt
+    time_sig: 4/4
+    license: CC BY-NC-SA 4.0
+    origin: "ASAP (Shi05M) / MAESTRO v3 (2006): J. S. Bach, Präludium C-Dur BWV 846"
+    fetch:
+      asap_folder: Bach/Prelude/bwv_846
+      asap_performance: Shi05M
+      maestro_audio: 2006/MIDI-Unprocessed_19_R1_2006_01-07_ORIG_MID--AUDIO_19_R1_2006_01_Track01_wav.wav
+      start: 0.0
+      end: 139.1224
+
+  - id: asap-bach-fugue-bwv856
+    style: classical
+    source: asap
+    quality: studio
+    audio: asap/bach-fugue-bwv856.flac
+    ref_midi: asap/bach-fugue-bwv856.mid
+    ref_musicxml: asap/bach-fugue-bwv856.musicxml
+    ref_annotations: asap/bach-fugue-bwv856.txt
+    time_sig: 3/8
+    license: CC BY-NC-SA 4.0
+    origin: "ASAP (LuoJ01M) / MAESTRO v3 (2015): J. S. Bach, Fuge F-Dur BWV 856"
+    notes: "Ausschnitt beginnt bei start - 0,5 s (= 59,478125), ASAP-Konvention."
+    fetch:
+      asap_folder: Bach/Fugue/bwv_856
+      asap_performance: LuoJ01M
+      maestro_audio: 2015/MIDI-Unprocessed_R1_D1-1-8_mid--AUDIO-from_mp3_06_R1_2015_wav--1.wav
+      start: 59.478125
+      end: 128.4740
+
+  - id: asap-mozart-k332-1
+    style: classical
+    source: asap
+    quality: studio
+    audio: asap/mozart-k332-1.flac
+    ref_midi: asap/mozart-k332-1.mid
+    ref_musicxml: asap/mozart-k332-1.musicxml
+    ref_annotations: asap/mozart-k332-1.txt
+    time_sig: 3/4
+    license: CC BY-NC-SA 4.0
+    origin: "ASAP (MunA03M) / MAESTRO v3 (2015): Mozart, Klaviersonate F-Dur KV 332, 1. Satz"
+    fetch:
+      asap_folder: Mozart/Piano_Sonatas/12-1
+      asap_performance: MunA03M
+      maestro_audio: 2015/MIDI-Unprocessed_R1_D1-9-12_mid--AUDIO-from_mp3_12_R1_2015_wav--2.wav
+      start: 0.0
+      end: 273.1646
+
+  - id: asap-beethoven-op81a-2
+    style: classical
+    source: asap
+    quality: studio
+    audio: asap/beethoven-op81a-2.flac
+    ref_midi: asap/beethoven-op81a-2.mid
+    ref_musicxml: asap/beethoven-op81a-2.musicxml
+    ref_annotations: asap/beethoven-op81a-2.txt
+    time_sig: 2/4
+    license: CC BY-NC-SA 4.0
+    origin: "ASAP (HONG05M) / MAESTRO v3 (2004): Beethoven, Klaviersonate Es-Dur op. 81a, 2. Satz"
+    fetch:
+      asap_folder: Beethoven/Piano_Sonatas/26-2
+      asap_performance: HONG05M
+      maestro_audio: 2004/MIDI-Unprocessed_XP_09_R1_2004_01-02_ORIG_MID--AUDIO_09_R1_2004_03_Track03_wav.wav
+      start: 0.0
+      end: 209.5781
+
+  - id: asap-chopin-etude-op10-5
+    style: classical
+    source: asap
+    quality: studio
+    audio: asap/chopin-etude-op10-5.flac
+    ref_midi: asap/chopin-etude-op10-5.mid
+    ref_musicxml: asap/chopin-etude-op10-5.musicxml
+    ref_annotations: asap/chopin-etude-op10-5.txt
+    time_sig: 2/4
+    license: CC BY-NC-SA 4.0
+    origin: "ASAP (LiA03M) / MAESTRO v3 (2017): Chopin, Etüde Ges-Dur op. 10 Nr. 5"
+    fetch:
+      asap_folder: Chopin/Etudes_op_10/5
+      asap_performance: LiA03M
+      maestro_audio: 2017/MIDI-Unprocessed_060_PIANO060_MID--AUDIO-split_07-07-17_Piano-e_2-04_wav--3.wav
+
+  - id: asap-debussy-pour-le-piano-1
+    style: classical
+    source: asap
+    quality: studio
+    audio: asap/debussy-pour-le-piano-1.flac
+    ref_midi: asap/debussy-pour-le-piano-1.mid
+    ref_musicxml: asap/debussy-pour-le-piano-1.musicxml
+    ref_annotations: asap/debussy-pour-le-piano-1.txt
+    time_sig: 3/4
+    license: CC BY-NC-SA 4.0
+    origin: "ASAP (MunA12M) / MAESTRO v3 (2015): Debussy, Pour le piano, Prélude"
+    fetch:
+      asap_folder: Debussy/Pour_le_Piano/1
+      asap_performance: MunA12M
+      maestro_audio: 2015/MIDI-Unprocessed_R2_D2-12-13-15_mid--AUDIO-from_mp3_12_R2_2015_wav--3.wav
+      start: 0.0
+      end: 225.4948
+
+  # --- MAESTRO (Test-Split, aus M1; Genauigkeitstest liest data/testset/maestro/) ---------
+  - id: maestro-chopin-etude-10-9
+    style: classical
+    source: maestro
+    quality: studio
+    audio: maestro/chopin-etude-10-9.wav
+    ref_midi: maestro/chopin-etude-10-9.midi
+    license: CC BY-NC-SA 4.0
+    origin: "MAESTRO v3 (2011): Chopin, Etüde f-Moll op. 10 Nr. 9"
+    fetch:
+      maestro_audio: 2011/MIDI-Unprocessed_24_R1_2011_MID--AUDIO_R1-D9_11_Track11_wav.wav
+
+  - id: maestro-scarlatti-k525
+    style: classical
+    source: maestro
+    quality: studio
+    audio: maestro/scarlatti-k525.wav
+    ref_midi: maestro/scarlatti-k525.midi
+    license: CC BY-NC-SA 4.0
+    origin: "MAESTRO v3 (2008): D. Scarlatti, Sonate K. 525"
+    fetch:
+      maestro_audio: 2008/MIDI-Unprocessed_09_R3_2008_01-07_ORIG_MID--AUDIO_09_R3_2008_wav--2.wav
+
+  - id: maestro-schubert-op90-4
+    style: classical
+    source: maestro
+    quality: studio
+    audio: maestro/schubert-op90-4.wav
+    ref_midi: maestro/schubert-op90-4.midi
+    license: CC BY-NC-SA 4.0
+    origin: "MAESTRO v3 (2015): Schubert, Impromptu As-Dur op. 90 Nr. 4"
+    notes: "Test-Split hat 5 Fassungen; die M1-Fassung ist nicht festgehalten, gewählt: die kürzeste (113 s)."
+    fetch:
+      maestro_audio: 2015/MIDI-Unprocessed_R2_D1-2-3-6-7-8-11_mid--AUDIO-from_mp3_03_R2_2015_wav--1.wav
+
+  # --- Internet-Mitschnitt (bleibt lokal, wird nicht geladen) -----------------------------
+  - id: internet-ivanov-nocturne-op9-3
+    style: classical
+    source: internet
+    quality: internet
+    audio: internet/245_gleb-ivanov-nocturne-op-9-no-3-by-nc-sa-905db039-99dc-4897-9841-cf9478c1ca55.mp3
+    license: CC BY-NC-SA (laut Dateiname)
+    origin: "Gleb Ivanov, Chopin Nocturne op. 9 Nr. 3 (Internet-Mitschnitt, Quelle laut Dateiname)"
+    notes: "Keine Referenz."
+
+  # --- Eigene Aufnahmen: PLATZHALTER, bitte Datei ablegen und Felder anpassen (Schritt 8) ---
+  - id: own-pop-1
+    style: pop
+    source: own
+    quality: phone
+    audio: own/pop-1.wav
+    license: TODO
+    origin: "TODO: Titel, Interpret, Aufnahmeart"
+    notes: "Platzhalter. Dateiendung anpassen; ref_midi/ref_musicxml ergänzen, falls vorhanden."
+
+  - id: own-jazz-1
+    style: jazz
+    source: own
+    quality: phone
+    audio: own/jazz-1.wav
+    license: TODO
+    origin: "TODO: Titel, Interpret, Aufnahmeart"
+    notes: "Platzhalter. Dateiendung anpassen; ref_midi/ref_musicxml ergänzen, falls vorhanden."
+
+  - id: own-free-1
+    style: free
+    source: own
+    quality: phone
+    audio: own/free-1.wav
+    license: TODO
+    origin: "TODO: Improvisation, Datum, Aufnahmeart"
+    notes: "Platzhalter. Dateiendung anpassen."

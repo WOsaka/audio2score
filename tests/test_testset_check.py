@@ -147,3 +147,14 @@ def test_mxl_without_score_is_an_error(tmp_path):
 def test_bad_annotations_are_an_error(tmp_path, content):
     (tmp_path / "s.txt").write_text(content, encoding="utf-8")
     assert levels(check_entry(make_entry(tmp_path, ref_annotations="s.txt"))) == ["error"]
+
+
+def test_valid_mp3_is_not_reported_as_truncated(tmp_path, make_wav):
+    # MP3: libsndfile schätzt die Frame-Zahl, das Ende darf nicht als Abschneiden gelten
+    ffmpeg = check_mod.find_ffmpeg()
+    wav = make_wav("a.wav", dur=2.0)
+    subprocess.run(
+        [ffmpeg, "-v", "error", "-y", "-i", str(wav), "-write_xing", "0", str(tmp_path / "a.mp3")],
+        check=True,
+    )
+    assert check_entry(make_entry(tmp_path, audio="a.mp3")) == []
