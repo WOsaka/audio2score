@@ -23,8 +23,10 @@ _ENTRY_FIELDS = {
     "id", "style", "source", "quality", "license", "origin", "time_sig", "tempo_hint", "notes",
     "fetch", *_PATH_FIELDS,
 }  # fmt: skip
-_FETCH_FIELDS = {"maestro_audio", "asap_folder", "asap_performance", "start", "end"}
+_FETCH_FIELDS = {"maestro_audio", "asap_folder", "asap_performance", "start", "end", "sha256"}
 _KEBAB = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
+_TIME_SIG = re.compile(r"[1-9]\d*/[1-9]\d*")
+_SHA256 = re.compile(r"[0-9a-f]{64}")
 
 
 class ManifestError(Exception):
@@ -42,6 +44,9 @@ class FetchSpec:
     asap_performance: str | None = None
     start: float | None = None
     end: float | None = None
+    sha256: str | None = (
+        None  # Prüfsumme der heruntergeladenen MAESTRO-Audiodatei (vor dem Zuschnitt)
+    )
 
 
 @dataclass(frozen=True)
@@ -98,6 +103,14 @@ def _parse_fetch(raw, eid: str, errors: list[str]) -> FetchSpec | None:
     for key in ("start", "end"):
         if raw.get(key) is not None and not _number(raw[key]):
             errors.append(f"{eid}: fetch.{key} muss eine Zahl sein")
+        elif raw.get(key) is not None and raw[key] < 0:
+            errors.append(f"{eid}: fetch.{key} darf nicht negativ sein")
+    sha = raw.get("sha256")
+    if sha is not None:
+        if not isinstance(sha, str) or not _SHA256.fullmatch(sha):
+            errors.append(f"{eid}: fetch.sha256 muss 64 Kleinbuchstaben-Hexzeichen sein")
+        elif not raw.get("maestro_audio"):
+            errors.append(f"{eid}: fetch.sha256 gilt nur zusammen mit maestro_audio")
     start, end = raw.get("start"), raw.get("end")
     if _number(start) and _number(end) and start >= end:
         errors.append(f"{eid}: fetch.start ({start}) muss kleiner als fetch.end ({end}) sein")
@@ -132,6 +145,9 @@ def _parse_entry(raw, index: int, data_dir: Path, errors: list[str]) -> Entry | 
         errors.append(f"{eid}: mindestens eines von 'audio' / 'ref_midi' ist nötig")
     if raw.get("tempo_hint") is not None and not _number(raw["tempo_hint"]):
         errors.append(f"{eid}: tempo_hint muss eine Zahl sein")
+    time_sig = raw.get("time_sig")
+    if time_sig is not None and not (isinstance(time_sig, str) and _TIME_SIG.fullmatch(time_sig)):
+        errors.append(f"{eid}: time_sig muss die Form '3/4' haben (ist {time_sig!r})")
 
     paths: dict[str, Path | None] = {}
     for key in _PATH_FIELDS:
@@ -176,7 +192,11 @@ def load_manifest(path: Path, data_dir: Path | None = None) -> Manifest:
         raw_entries = []
 
     if data_dir is None:
-        data_dir = path.parent / doc.get("data_dir", "../data/testset")
+        raw_dir = doc.get("data_dir", "../data/testset")
+        if not isinstance(raw_dir, str) or not raw_dir:
+            errors.append(f"Manifest: data_dir muss ein Pfad (Text) sein (ist {raw_dir!r})")
+            raw_dir = "../data/testset"
+        data_dir = path.parent / raw_dir
     data_dir = Path(data_dir).resolve()
 
     entries: list[Entry] = []

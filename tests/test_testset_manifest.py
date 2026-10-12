@@ -118,6 +118,9 @@ def test_paths_must_stay_inside_data_dir(write, bad):
         {"maestro_audio": "a.wav", "start": 5.0, "end": 5.0},
         {"maestro_audio": "a.wav", "start": 9.0, "end": 5.0},
         {"maestro_audio": "a.wav", "bogus": 1},
+        {"maestro_audio": "a.wav", "start": -1.0},
+        {"maestro_audio": "a.wav", "sha256": "xyz"},
+        {"asap_folder": "f", "asap_performance": "p", "sha256": "0" * 64},
     ],
 )
 def test_incomplete_or_invalid_fetch(write, fetch):
@@ -162,3 +165,18 @@ def test_shipped_manifest_is_valid_and_has_the_required_composition():
     assert {"phone", "internet"} & {e.quality for e in entries}
     assert sum(e.source == "asap" for e in entries) >= 6
     assert sum(e.source == "maestro" for e in entries) == 3
+
+
+@pytest.mark.parametrize("time_sig", ["3", "x/4", "0/4", 34, "3/4/5"])
+def test_invalid_time_sig(write, time_sig):
+    assert any("time_sig" in e for e in errors_of(write([entry(time_sig=time_sig)])))
+
+
+def test_valid_time_sig_and_sha256(write):
+    m = load_manifest(write([entry(time_sig="6/8")]))
+    assert m.entries[0].time_sig == "6/8"
+
+
+@pytest.mark.parametrize("data_dir", [5, "", ["a"]])
+def test_data_dir_must_be_text(write, data_dir):
+    assert any("data_dir" in e for e in errors_of(write([entry()], data_dir=data_dir)))

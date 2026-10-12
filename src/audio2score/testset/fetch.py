@@ -1,5 +1,6 @@
 """Testset-Download: MAESTRO-Audio per HTTP-Range aus dem Zip, ASAP-Dateien von GitHub."""
 
+import hashlib
 import io
 import os
 import time
@@ -187,13 +188,20 @@ class Fetcher:
         crop = spec.start is not None or spec.end is not None
         same_format = dest.suffix.lower() == Path(spec.maestro_audio).suffix.lower()
         try:
+            digest = hashlib.sha256()
             with self._maestro_zip().open(info) as src, open(source, "wb") as out:
                 done = 0
                 while block := src.read(1 << 20):
                     out.write(block)
+                    digest.update(block)
                     done += len(block)
                     if self.on_progress:
                         self.on_progress(entry.id, done, info.file_size)
+            if spec.sha256 and digest.hexdigest() != spec.sha256:
+                raise FetchError(
+                    f"Prüfsumme von {spec.maestro_audio} stimmt nicht "
+                    f"(erwartet {spec.sha256[:12]}…, ist {digest.hexdigest()[:12]}…)"
+                )
             if not crop and same_format:
                 os.replace(source, dest)
                 return

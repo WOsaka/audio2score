@@ -295,3 +295,21 @@ def test_convert_to_flac_without_start_and_end(server, tmp_path):
     fetch_entry(e)
     info = sf.info(e.audio)
     assert info.format == "FLAC" and info.frames == 2 * SR
+
+
+def test_sha256_match_and_mismatch(server, tmp_path):
+    import hashlib
+
+    wav = wav_bytes()
+    server.routes["/maestro.zip"] = maestro_zip({"2008/a.wav": wav})
+    good = FetchSpec(maestro_audio="2008/a.wav", sha256=hashlib.sha256(wav).hexdigest())
+    e = entry(tmp_path, fetch=good)
+    fetch_entry(e)
+    assert e.audio.read_bytes() == wav
+
+    bad = FetchSpec(maestro_audio="2008/a.wav", sha256="0" * 64)
+    e2 = entry(tmp_path, audio="maestro/y.wav", fetch=bad, eid="other")
+    with pytest.raises(FetchError, match="Prüfsumme"):
+        fetch_entry(e2)
+    assert not e2.audio.exists()
+    assert not list(tmp_path.rglob("*.part"))

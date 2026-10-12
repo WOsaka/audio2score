@@ -50,8 +50,11 @@ direkte Teil-B-Eingabe; `transcribe` überspringt ihn.
 ### `fetch`
 
 - `maestro_audio`: Pfad der WAV im MAESTRO-v3-Zip (ohne `maestro-v3.0.0/`). Das Zip (108 GB) wird
-  nie ganz geladen, nur die benötigte Datei per HTTP-Range. Bei Einträgen mit `source: maestro`
+  nie ganz geladen, nur die benötigte Datei per HTTP-Range. Die komplette WAV wird geladen und
+  erst danach zugeschnitten (je nach Stück einige hundert MB). Bei Einträgen mit `source: maestro`
   wird die gleichnamige `.midi` als `ref_midi` mitgeladen.
+- `sha256` (optional): Prüfsumme der geladenen MAESTRO-Audiodatei vor dem Zuschnitt; bei
+  Abweichung schlägt der Fetch fehl.
 - `start`, `end` (Sekunden): Ausschnitt; das Ergebnis wird als FLAC/WAV nach der Endung von `audio`
   geschrieben (16 Bit). Ohne beide Werte wird das Audio unverändert kopiert.
 - `asap_folder`, `asap_performance`: ASAP-Dateien (`xml_score.musicxml`, `<perf>.mid`,

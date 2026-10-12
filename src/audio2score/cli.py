@@ -289,7 +289,7 @@ def testset_baseline(
     for row in rows:
         p, r, f1, notes = _baseline_cells(row)
         if row.status != "ok":  # Hinweistext statt Zahlen
-            typer.echo(f"{row.id:<{width}}  {row.style:<9}  {row.quality:<8}  {p}")
+            typer.echo(line(row.id, row.style, row.quality, "-", "-", "-", p))
         else:
             typer.echo(line(row.id, row.style, row.quality, p, r, f1, notes))
     for key, title in (("style", "Stil"), ("quality", "Qualität")):
