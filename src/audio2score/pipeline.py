@@ -7,6 +7,9 @@ from audio2score import cache
 from audio2score.audio.load import SAMPLE_RATE, AudioLoadError, load_audio
 from audio2score.cleanup.notes import cleanup
 from audio2score.model import NoteList
+from audio2score.rhythm import get_beat_tracker
+from audio2score.rhythm.base import Beats, BeatTracker
+from audio2score.rhythm.beat_this import SAMPLE_RATE as BEAT_SAMPLE_RATE
 from audio2score.transcribe import get_transcriber
 
 
@@ -80,3 +83,44 @@ def transcribe_file(
             cache.save(directory, key, raw)
 
     return _result(raw, do_cleanup, cache_hit, start)
+
+
+def cached_beats(
+    audio_path: Path, cache_dir: Path | None = None, tracker: BeatTracker | None = None
+) -> Beats | None:
+    """Nur den Beat-Cache lesen: kein Audio laden, kein Modell laden. None bei einem Fehltreffer."""
+    audio_path = Path(audio_path)
+    if not audio_path.is_file():
+        raise AudioLoadError(f"Datei nicht gefunden: {audio_path}")
+    tracker = tracker or get_beat_tracker()
+    key = cache.beat_cache_key(audio_path, tracker)
+    return cache.load_beats(cache.resolve_cache_dir(cache_dir), key)
+
+
+def detect_beats(
+    audio_path: Path,
+    cache_dir: Path | None = None,
+    use_cache: bool = True,
+    tracker: BeatTracker | None = None,
+    on_beats: Callable[[], None] | None = None,
+) -> tuple[Beats, bool]:
+    """Beat-Cache oder Tracker. Gibt (Beats, Cache-Treffer) zurück.
+
+    Ohne `use_cache` wird der Cache weder gelesen noch geschrieben.
+    """
+    audio_path = Path(audio_path)
+    if not audio_path.is_file():
+        raise AudioLoadError(f"Datei nicht gefunden: {audio_path}")
+    tracker = tracker or get_beat_tracker()
+    directory = cache.resolve_cache_dir(cache_dir)
+    key = cache.beat_cache_key(audio_path, tracker) if use_cache else None
+    beats = cache.load_beats(directory, key) if use_cache else None
+    if beats is not None:
+        return beats, True
+    audio = load_audio(audio_path, BEAT_SAMPLE_RATE)
+    if on_beats:
+        on_beats()
+    beats = tracker.track(audio, BEAT_SAMPLE_RATE)
+    if use_cache:
+        cache.save_beats(directory, key, beats)
+    return beats, False

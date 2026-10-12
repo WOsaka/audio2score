@@ -53,3 +53,64 @@ def test_different_backend_version_is_a_miss(make_wav, tmp_path, monkeypatch):
     newer = type("Newer", (CountingBackend,), {"version": "2"})
     monkeypatch.setitem(transcribe_pkg._REGISTRY, "fake", lambda **options: newer())
     assert cached_transcription(audio, "fake", tmp_path / "c") is None
+
+
+class CountingTracker:
+    name = "fake-tracker"
+    version = "1"
+    calls = 0
+
+    def track(self, audio, sample_rate):
+        from audio2score.rhythm.base import Beats
+
+        CountingTracker.calls += 1
+        assert sample_rate == 22_050
+        return Beats([0.5, 1.0, 1.5], [0.5], self.name, self.version)
+
+
+def test_cached_beats_miss_does_not_call_tracker(make_wav, tmp_path):
+    from audio2score.pipeline import cached_beats
+
+    CountingTracker.calls = 0
+    assert cached_beats(make_wav(), tmp_path / "c", CountingTracker()) is None
+    assert CountingTracker.calls == 0
+    assert not (tmp_path / "c").exists()
+
+
+def test_detect_beats_computes_once_then_hits_cache(make_wav, tmp_path):
+    from audio2score.pipeline import cached_beats, detect_beats
+
+    CountingTracker.calls = 0
+    audio = make_wav()
+    seen = []
+    beats, hit = detect_beats(
+        audio, tmp_path / "c", tracker=CountingTracker(), on_beats=lambda: seen.append(1)
+    )
+    assert (hit, CountingTracker.calls, seen) == (False, 1, [1])
+    again, hit = detect_beats(
+        audio, tmp_path / "c", tracker=CountingTracker(), on_beats=lambda: seen.append(1)
+    )
+    assert (hit, CountingTracker.calls, seen) == (True, 1, [1])
+    assert again == beats
+    assert cached_beats(audio, tmp_path / "c", CountingTracker()) == beats
+
+
+def test_detect_beats_without_cache_always_computes_and_writes_nothing(make_wav, tmp_path):
+    from audio2score.pipeline import detect_beats
+
+    CountingTracker.calls = 0
+    for _ in range(2):
+        _, hit = detect_beats(
+            make_wav(), tmp_path / "c", use_cache=False, tracker=CountingTracker()
+        )
+        assert hit is False
+    assert CountingTracker.calls == 2
+    assert not (tmp_path / "c").exists()
+
+
+def test_detect_beats_missing_file(tmp_path):
+    from audio2score.audio.load import AudioLoadError
+    from audio2score.pipeline import detect_beats
+
+    with pytest.raises(AudioLoadError):
+        detect_beats(tmp_path / "x.wav", tmp_path / "c", tracker=CountingTracker())

@@ -77,3 +77,41 @@ def test_old_schema_returns_none(tmp_path, caplog):
 def test_structurally_invalid_entry_returns_none(tmp_path, payload):
     (tmp_path / "k.json").write_text(payload, encoding="utf-8")
     assert cache.load(tmp_path, "k") is None
+
+
+def make_beats():
+    from audio2score.rhythm.base import Beats
+
+    return Beats([0.5, 1.0, 1.5], [0.5], "fake-tracker", "2.0-x")
+
+
+def test_beat_key_is_separate_from_note_key(tmp_path):
+    a = tmp_path / "a.wav"
+    a.write_bytes(b"x")
+    tracker = FakeTranscriber("fake-tracker", "2.0-x")
+    note_key = cache.cache_key(a, FakeTranscriber("fake-tracker", "2.0-x"))
+    beat_key = cache.beat_cache_key(a, tracker)
+    assert beat_key != note_key
+    assert "-beats-fake-tracker-2.0-x" in beat_key
+    assert beat_key.startswith(note_key.split("-")[0])
+
+
+def test_beats_roundtrip_with_own_suffix(tmp_path):
+    key = "abc-beats-fake-tracker-2.0-x"
+    cache.save_beats(tmp_path / "c", key, make_beats())
+    assert (tmp_path / "c" / f"{key}.json").is_file()
+    assert cache.load_beats(tmp_path / "c", key) == make_beats()
+
+
+def test_beats_miss_and_corrupt_entry(tmp_path, caplog):
+    assert cache.load_beats(tmp_path, "nope") is None
+    (tmp_path / "bad.json").write_text("{kaputt", encoding="utf-8")
+    with caplog.at_level(logging.WARNING):
+        assert cache.load_beats(tmp_path, "bad") is None
+    assert "bad" in caplog.text
+
+
+def test_beats_wrong_schema_is_a_miss(tmp_path, caplog):
+    (tmp_path / "old.json").write_text(json.dumps({"schema": 99, "beats": {}}), encoding="utf-8")
+    with caplog.at_level(logging.WARNING):
+        assert cache.load_beats(tmp_path, "old") is None

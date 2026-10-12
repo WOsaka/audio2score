@@ -21,7 +21,7 @@ dependencies = [
     "pyyaml",
     "mir_eval",
     "beat_this",
-    "torchaudio",
+    "torchaudio==2.11.0",  # neuer als auf PyPI nicht verfügbar; mit torch 2.14.1 getestet (Plan, Schritt 1)
     "music21",
     "mido",
 ]
