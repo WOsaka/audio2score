@@ -1,7 +1,7 @@
 ---
 title: "Implementation Plan: Testset"
 feature_spec: docs/features/testset.md
-status: pending-approval   # pending-approval | approved | implemented
+status: approved   # pending-approval | approved | implemented
 created: 2026-10-12
 updated: 2026-10-12
 ---
