@@ -14,3 +14,21 @@ Thumbs.db
 # Temp
 tmp/
 *.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Projekt: Audio, Modelle, Ergebnisse
+cache/
+out/
+data/
+*.pth
+*.onnx
