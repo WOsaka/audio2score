@@ -66,7 +66,7 @@ Tasten-Offsets (nicht pedal-verlängert) und das Sustain-Pedal als CC64.
 
 ## Testset
 
-Feste Sammlung von 13 Stücken mit Referenzen (Manifest: `testset/manifest.yaml`, Details:
+Feste Sammlung von 12 Stücken mit Referenzen (Manifest: `testset/manifest.yaml`, Details:
 `testset/README.md`). Die Daten liegen unter `data/testset/` und sind nicht eingecheckt.
 
 ```powershell

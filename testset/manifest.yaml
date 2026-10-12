@@ -160,30 +160,20 @@ entries:
     origin: "Gleb Ivanov, Chopin Nocturne op. 9 Nr. 3 (Internet-Mitschnitt, Quelle laut Dateiname)"
     notes: "Keine Referenz."
 
-  # --- Eigene Aufnahmen: PLATZHALTER, bitte Datei ablegen und Felder anpassen (Schritt 8) ---
-  - id: own-pop-1
+  - id: internet-anthem-of-rain-daydream
     style: pop
-    source: own
-    quality: phone
-    audio: own/pop-1.wav
-    license: TODO
-    origin: "TODO: Titel, Interpret, Aufnahmeart"
-    notes: "Platzhalter. Dateiendung anpassen; ref_midi/ref_musicxml ergänzen, falls vorhanden."
+    source: internet
+    quality: internet
+    audio: internet/Anthem of Rain - Daydream - Piano.mp3
+    license: unbekannt (prüfen)
+    origin: "Anthem of Rain, Daydream (Piano), MP3 aus dem Internet; Quelle und Lizenz nicht festgehalten"
+    notes: "Keine Referenz. Stil 'pop' ist eine Einordnung, nicht belegt."
 
-  - id: own-jazz-1
+  - id: internet-lobo-loco-moonlight-moovie
     style: jazz
-    source: own
-    quality: phone
-    audio: own/jazz-1.wav
-    license: TODO
-    origin: "TODO: Titel, Interpret, Aufnahmeart"
-    notes: "Platzhalter. Dateiendung anpassen; ref_midi/ref_musicxml ergänzen, falls vorhanden."
-
-  - id: own-free-1
-    style: free
-    source: own
-    quality: phone
-    audio: own/free-1.wav
-    license: TODO
-    origin: "TODO: Improvisation, Datum, Aufnahmeart"
-    notes: "Platzhalter. Dateiendung anpassen."
+    source: internet
+    quality: internet
+    audio: internet/Lobo Loco - Moonlight Moovie - Piano (ID 1621).mp3
+    license: unbekannt (prüfen)
+    origin: "Lobo Loco, Moonlight Moovie (Piano, ID 1621), MP3 aus dem Internet; Quelle und Lizenz nicht festgehalten"
+    notes: "Keine Referenz. ID3-Genre: Blues; Stil 'jazz' ist eine Einordnung."

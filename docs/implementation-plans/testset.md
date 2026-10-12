@@ -1,7 +1,7 @@
 ---
 title: "Implementation Plan: Testset"
 feature_spec: docs/features/testset.md
-status: approved   # pending-approval | approved | implemented
+status: implemented   # pending-approval | approved | implemented
 created: 2026-10-12
 updated: 2026-10-12
 ---
@@ -196,7 +196,7 @@ Taktarten laut ASAP-Annotationen beim Festlegen prüfen. Ziel: neben 4/4 auch 3/
   - M1-Test → `test_accuracy`
 
 ## Umsetzungsstand (2026-10-12)
-Schritte 1–7, 9 und 10 erledigt; Schritt 8 (eigene Aufnahmen) offen, im Manifest stehen Platzhalter.
+Schritte 1–7, 9 und 10 erledigt. Schritt 8 (eigene Aufnahmen) teilweise: Pop und Jazz kamen als Internet-Mitschnitte (Anthem of Rain, Lobo Loco; Lizenz unbekannt), **eine Improvisation (Stil `free`) gibt es bewusst nicht** und es gibt keine Handy-Aufnahme (`quality: phone`). Die Kriterien „≥ 1 je Stil“ und „≥ 1 phone/internet“ sind damit bis auf `free` erfüllt.
 
 Baseline `testset baseline` (ByteDance, mit Aufräumen):
 
@@ -217,7 +217,7 @@ Baseline `testset baseline` (ByteDance, mit Aufräumen):
   damit die kürzeste (113 s), Abweichung zu M1 gibt es nicht.
 - Versatz ASAP-MIDI ↔ MAESTRO-Audio: null bei `start = 0`; bei der Fuge BWV 856 beginnt die ASAP-MIDI bei
   `start − 0,5 s`, deshalb `fetch.start: 59.478125`. Dass das stimmt, zeigt auch die F1 von 0,997.
-- Ivanov (Internet) und die drei eigenen Stücke haben keine Referenz, tauchen nur als „keine Referenz“ auf.
+- Ivanov, Anthem of Rain und Lobo Loco (alle Internet) haben keine Referenz, tauchen nur als „keine Referenz“ auf.
 - Echtlauf-Fehler behoben: `check` meldete gültige MP3 als abgeschnitten; `fetch` stürzte ohne `end` ab.
 
 ## Risks & Open Questions
@@ -226,5 +226,5 @@ Baseline `testset baseline` (ByteDance, mit Aufräumen):
 - **Laufzeit `transcribe`**: ≈ 1× Echtzeit → ~40–60 min für das ganze Set. Läuft einmal im Hintergrund, danach Cache.
 - **Lizenzen**: MAESTRO und ASAP CC BY-NC-SA 4.0 (Hobby, nicht kommerziell → ok, im Manifest vermerkt). Internet-Mitschnitte bleiben lokal, `fetch` lädt sie nicht.
 - **Cache-Schlüssel = Datei-Hash**: Zuschnitt und FLAC-Kodierung müssen deterministisch sein (gleiche Version von `soundfile`/libsndfile), sonst werden neu geladene Dateien neu transkribiert. Akzeptabel; im README erwähnen.
-- [ ] Eigene Pop-/Jazz-/Impro-Aufnahmen: liefert der User (Schritt 8). Bis dahin ist das Kriterium „≥ 1 je Stil“ offen.
-- [ ] Schubert op. 90/4: Die genaue M1-Fassung ist unbekannt (5 Kandidaten im Test-Split). Sie wird über die F1-Werte aus M1 wiedergefunden (Schritt 7/9), sonst gilt die dokumentierte Abweichung.
+- [~] Eigene Aufnahmen (Schritt 8): Pop/Jazz als Internet-Mitschnitte, Impro entfällt bewusst. Kriterium „je Stil“ nur ohne `free` erfüllt.
+- [x] Schubert op. 90/4: kürzeste Fassung (113 s) gewählt; F1 0,988 reproduziert M1.

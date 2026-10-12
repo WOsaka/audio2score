@@ -37,17 +37,6 @@ def test_check_has_no_errors_for_fetchable_and_internet_entries(manifest):
 
 
 @pytest.mark.slow
-def test_own_recordings_are_present(manifest):
-    missing = [
-        f"{e.id}: {e.audio}"
-        for e in manifest.entries
-        if e.source == "own" and not (e.audio and e.audio.is_file())
-    ]
-    if missing:
-        pytest.skip("eigene Aufnahmen fehlen (Schritt 8):\n" + "\n".join(missing))
-
-
-@pytest.mark.slow
 def test_note_f1_of_asap_and_maestro_pieces(manifest):
     cache_dir = (
         None  # Standard-Cache (./cache bzw. AUDIO2SCORE_CACHE), damit er wiederverwendet wird

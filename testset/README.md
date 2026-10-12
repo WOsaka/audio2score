@@ -22,8 +22,8 @@ das ganze Set, danach Cache) → `baseline`.
 ## Eigene Aufnahmen und Internet-Mitschnitte
 
 1. Datei nach `data/testset/own/` (bzw. `internet/`) legen.
-2. Eintrag in `manifest.yaml` anlegen oder den Platzhalter (`own-pop-1`, `own-jazz-1`,
-   `own-free-1`) anpassen: `audio`, `license`, `origin`, ggf. `ref_midi` / `ref_musicxml`.
+2. Eintrag in `manifest.yaml` anlegen: `audio`, `license`, `origin`, ggf. `ref_midi` / `ref_musicxml`.
+   (Es gibt noch keine Improvisation, Stil `free`.)
 3. `audio2score testset check`.
 
 Einträge ohne `fetch`-Block werden nie geladen. Mitschnitte aus dem Internet bleiben lokal.

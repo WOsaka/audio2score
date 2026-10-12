@@ -1,6 +1,6 @@
 ---
 title: "Testset"
-status: approved       # draft | approved | implemented
+status: implemented    # draft | approved | implemented
 created: 2026-10-12
 updated: 2026-10-12
 ---
@@ -16,7 +16,7 @@ Zweck, nach Priorität:
 3. Grundlage für `audio2score eval` (M7).
 
 ## Goals
-- [ ] Manifest mit 12–15 Stücken aller Stile (Klassik, Pop, Jazz, Improvisation), zusammen ≤ 60 min Audio
+- [~] Manifest mit 12–15 Stücken aller Stile (Klassik, Pop, Jazz, Improvisation), zusammen ≤ 60 min Audio — 12 Stücke, ~32 min; **Improvisation fehlt** (bewusst ohne, 2026-10-12)
 - [ ] ASAP-Ausschnitt (~6 Stücke mit MAESTRO-Audio, Performance-MIDI und Referenz-MusicXML) automatisch ladbar
 - [ ] `audio2score testset check` prüft alle Einträge auf Vollständigkeit und Lesbarkeit
 - [ ] `audio2score testset transcribe` legt Teil-A-Ergebnisse aller Audio-Stücke im Cache ab (fortsetzbar)
@@ -71,7 +71,7 @@ Pflichtfelder: `id`, `style`, `source`, `quality`, `license`, `origin` sowie min
 - [ ] Given ein frisches Checkout ohne Daten, when das Download-Skript läuft, then liegen alle ASAP- und MAESTRO-Einträge des Manifests vor und `check` meldet für sie OK.
 - [ ] Given teilweise gefüllter Cache, when `testset transcribe` läuft, then werden nur die fehlenden Stücke transkribiert.
 - [ ] Given gecachte Teil-A-Ergebnisse, when `testset baseline` läuft, then erscheint die F1 für jedes Stück mit Referenz-MIDI, dazu Mittelwerte pro Stil und Qualität, ohne erneuten Modelllauf.
-- [ ] Das Manifest enthält 12–15 Stücke, davon ≥ 1 je Stil (classical, pop, jazz, free) und ≥ 1 je Qualität (studio, phone/internet).
+- [~] Das Manifest enthält 12–15 Stücke, davon ≥ 1 je Stil (classical, pop, jazz, free) und ≥ 1 je Qualität (studio, phone/internet). — erfüllt bis auf Stil `free`; `phone` ist nicht vertreten, nur `internet`.
 - [ ] Der bestehende Genauigkeitstest aus M1 (`data/testset/maestro/`) läuft weiter.
 
 ## Edge Cases & Error States
