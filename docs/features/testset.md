@@ -1,6 +1,6 @@
 ---
 title: "Testset"
-status: draft          # draft | approved | implemented
+status: approved       # draft | approved | implemented
 created: 2026-10-12
 updated: 2026-10-12
 ---
