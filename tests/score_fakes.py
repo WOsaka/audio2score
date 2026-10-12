@@ -3,7 +3,7 @@
 from audio2score import rhythm
 from audio2score import transcribe as transcribe_pkg
 from audio2score.model import Note, NoteList
-from audio2score.rhythm.base import Beats
+from audio2score.rhythm.base import Beats, RhythmError
 
 
 class FakeBackend:
@@ -23,9 +23,12 @@ class FakeTracker:
     calls = 0
     n_beats = 20
     downbeat_every = 4
+    fail_for: set[int] = set()  # Nummern der Aufrufe, die scheitern
 
     def track(self, audio, sample_rate):
         FakeTracker.calls += 1
+        if FakeTracker.calls in FakeTracker.fail_for:
+            raise RhythmError("Beat-Fehler")
         times = [i * 0.5 for i in range(FakeTracker.n_beats)]
         return Beats(times, times[:: FakeTracker.downbeat_every], self.name, self.version)
 
@@ -41,6 +44,7 @@ def install(monkeypatch) -> None:
     FakeTracker.calls = 0
     FakeTracker.n_beats = 20
     FakeTracker.downbeat_every = 4
+    FakeTracker.fail_for = set()
     monkeypatch.setitem(transcribe_pkg._REGISTRY, "fake", lambda **options: FakeBackend())
     monkeypatch.setitem(rhythm._REGISTRY, "fake-tracker", lambda **options: FakeTracker())
     monkeypatch.setitem(rhythm._REGISTRY, "beat_this", lambda **options: FakeTracker())  # Standard

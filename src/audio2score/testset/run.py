@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Literal
 
 from audio2score.eval.notes import note_prf, read_midi_notes
-from audio2score.pipeline import cached_transcription, transcribe_file
+from audio2score.pipeline import cached_transcription, score_file, transcribe_file
 from audio2score.testset.manifest import Entry, Manifest
 from audio2score.transcribe.base import BackendUnavailableError, ModelDownloadError
 
@@ -129,3 +129,88 @@ def group_means(rows: list[BaselineRow], key: Literal["style", "quality"]) -> li
         )
         for name, items in sorted(groups.items())
     ]
+
+
+@dataclass
+class ScoreRow:
+    id: str
+    status: Literal["ok", "skipped", "not_transcribed", "missing", "failed"]
+    time_sig: str = ""  # erkannt (oder Standard)
+    expected_time_sig: str | None = None  # aus dem Manifest, nur zum Vergleich
+    bars: int = 0
+    expected_bars: int | None = None  # Downbeats der ASAP-Annotation
+    pickup: bool = False
+    seconds: float = 0.0
+    message: str = ""
+
+
+def count_downbeats(path: Path) -> int:
+    """Anzahl der Downbeats (`db`) in einer ASAP-Annotationsdatei."""
+    count = 0
+    for line in path.read_text(encoding="utf-8").splitlines():
+        fields = line.split("\t")
+        if len(fields) >= 3 and fields[2].split(",")[0].strip() == "db":
+            count += 1
+    return count
+
+
+def _reread(path: Path) -> None:
+    """Liest das MusicXML mit music21 wieder ein; wirft, wenn es nicht lesbar ist."""
+    from music21 import converter
+
+    parts = converter.parse(path).parts
+    if len(parts) != 2:
+        raise ValueError(f"MusicXML hat {len(parts)} statt 2 Systeme")
+
+
+def score_all(
+    manifest: Manifest,
+    backend: str,
+    cache_dir: Path | None,
+    out_dir: Path,
+    only: list[str] | None = None,
+    on_start: Callable[[int, int, Entry], None] | None = None,
+    on_result: Callable[[int, int, ScoreRow], None] | None = None,
+) -> list[ScoreRow]:
+    """Partitur für alle Audio-Stücke; Noten nur aus dem Cache, Beats werden bei Bedarf gerechnet.
+
+    Die Taktart des Manifests wird nicht als Hinweis benutzt, nur verglichen.
+    """
+    entries = _selected(manifest, only)
+    rows = []
+    for i, entry in enumerate(entries, 1):
+        if on_start:
+            on_start(i, len(entries), entry)
+        start = time.perf_counter()
+        base = {"expected_time_sig": entry.time_sig}
+        if entry.ref_annotations is not None and entry.ref_annotations.is_file():
+            base["expected_bars"] = count_downbeats(entry.ref_annotations)
+        if entry.audio is None:
+            row = ScoreRow(entry.id, "skipped", message="kein Audio (nur Referenz)", **base)
+        elif not entry.audio.is_file():
+            row = ScoreRow(entry.id, "missing", message=f"Datei fehlt: {entry.audio}", **base)
+        elif cached_transcription(entry.audio, backend, cache_dir) is None:
+            row = ScoreRow(entry.id, "not_transcribed", message="nicht transkribiert", **base)
+        else:
+            try:
+                result = score_file(entry.audio, out_dir, backend=backend, cache_dir=cache_dir)
+                _reread(result.musicxml)
+                meter = result.grid.meter
+                row = ScoreRow(
+                    entry.id,
+                    "ok",
+                    time_sig=f"{meter.numerator}/{meter.denominator}",
+                    bars=result.bars,
+                    pickup=result.grid.pickup_steps > 0,
+                    seconds=time.perf_counter() - start,
+                    message="; ".join(result.warnings),
+                    **base,
+                )
+            except (BackendUnavailableError, ModelDownloadError):
+                raise  # betrifft alle Stücke, weiterzumachen hilft nicht
+            except Exception as e:  # pro Stück melden und weitermachen
+                row = ScoreRow(entry.id, "failed", message=f"{type(e).__name__}: {e}", **base)
+        rows.append(row)
+        if on_result:
+            on_result(i, len(entries), row)
+    return rows

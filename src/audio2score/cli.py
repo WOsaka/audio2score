@@ -389,3 +389,68 @@ def testset_baseline(
             f"\n{missing} Stück(e) nicht transkribiert - zuerst: audio2score testset transcribe",
             err=True,
         )
+
+
+@testset_app.command("score")
+def testset_score(
+    output: Path = typer.Option(..., "-o", "--output", help="Zielordner (wird angelegt)"),
+    manifest: Path | None = _ManifestOpt,
+    data_dir: Path | None = _DataDirOpt,
+    backend: str = _BackendOpt,
+    cache_dir: Path | None = _CacheDirOpt,
+    only: list[str] | None = _OnlyOpt,
+) -> None:
+    """Partituren für alle Stücke (Noten nur aus dem Cache) und Vergleich mit den Soll-Werten."""
+    from audio2score.testset.run import score_all
+
+    loaded = _load_testset(manifest, data_dir, only)
+
+    def on_start(i: int, n: int, entry) -> None:
+        typer.echo(f"[{i}/{n}] {entry.id} ... ", nl=False)
+
+    def on_result(i: int, n: int, row) -> None:
+        typer.echo(
+            {
+                "ok": f"{row.time_sig}, {row.bars} Takte, {row.seconds:.0f} s",
+                "skipped": f"übersprungen ({row.message})",
+                "not_transcribed": "übersprungen (nicht transkribiert)",
+                "missing": f"WARNUNG: {row.message}",
+                "failed": f"FEHLER: {row.message}",
+            }[row.status]
+        )
+
+    try:
+        rows = score_all(loaded, backend, cache_dir, output, only, on_start, on_result)
+    except (BackendUnavailableError, ModelDownloadError) as e:
+        raise _fail(str(e)) from e
+
+    def cell(found: str, expected: str | None) -> str:
+        return f"{found} / {expected if expected is not None else '-'}"
+
+    width = max([len(r.id) for r in rows] + [len("Stück")])
+    head = f"{'Stück':<{width}}  {'Taktart (ist/soll)':<20}  {'Takte (ist/soll)':<17}"
+    typer.echo(f"\n{head}  Auftakt  Status")
+    for row in rows:
+        if row.status == "ok":
+            sig = cell(row.time_sig, row.expected_time_sig)
+            bars = cell(
+                str(row.bars), None if row.expected_bars is None else str(row.expected_bars)
+            )
+            pickup = "ja" if row.pickup else "nein"
+            status = "ok" + (f" ({row.message})" if row.message else "")
+        else:
+            sig = bars = pickup = "-"
+            status = {
+                "skipped": f"übersprungen: {row.message}",
+                "not_transcribed": "übersprungen: nicht transkribiert",
+                "missing": f"FEHLT: {row.message}",
+                "failed": f"FEHLER: {row.message}",
+            }[row.status]
+        typer.echo(f"{row.id:<{width}}  {sig:<20}  {bars:<17}  {pickup:<7}  {status}")
+
+    counts = {s: sum(r.status == s for r in rows) for s in ("ok", "failed")}
+    skipped = len(rows) - counts["ok"] - counts["failed"]
+    summary = f"{len(rows)} Stücke: {counts['ok']} ok, {skipped} übersprungen"
+    typer.echo(f"\n{summary}, {counts['failed']} Fehler")
+    if counts["failed"]:
+        raise typer.Exit(1)
