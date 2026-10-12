@@ -144,14 +144,14 @@ Wird in Schritt 7 festgelegt und gemessen; Ziel ≤ 60 min Audio gesamt.
 | Gruppe | Kandidaten | ca. Dauer |
 |---|---|---|
 | ASAP (6) | Bach Präludium BWV 846; Bach Fuge BWV 856; Mozart Sonate KV 332, 1. Satz (ASAP `Piano_Sonatas/12-1`); Beethoven op. 81a, 2. Satz (`26-2`); Chopin Etüde op. 10/5; Debussy *Pour le piano*, Prélude. Ersatz: Schumann Kreisleriana 1, Haydn Hob. XVI:39/1 | ~17 min |
-| MAESTRO (3) | Scarlatti K. 525 (66 s), Schubert Impromptu op. 90/4 (kürzeste Fassung, 113 s), eine Chopin-Etüde aus dem Test-Split | ~6 min |
+| MAESTRO (3) | M1-Stücke, Test-Split: Chopin op. 10/9 (`2011/MIDI-Unprocessed_24_R1_2011_MID--AUDIO_R1-D9_11_Track11_wav.wav`, 125 s, einziger Treffer); Scarlatti K. 525 (`2008/MIDI-Unprocessed_09_R3_2008_01-07_ORIG_MID--AUDIO_09_R3_2008_wav--2.wav`, 66 s, einziger Treffer); Schubert op. 90/4: fünf Fassungen im Test-Split, die M1-Fassung ist nicht festgehalten (siehe Schritt 7) | ~6–9 min |
 | Internet (1) | Ivanov, Nocturne op. 9/3 (vorhanden) | ~3 min |
 | Eigene / Internet (≥ 3) | Pop, Jazz, Improvisation (liefert der User) | ~10 min |
 
-Taktarten laut ASAP-Annotationen beim Festlegen prüfen. Ziel: neben 4/4 auch 3/4, 2/4 und ein zusammengesetzter Takt (3/8 oder 6/8). Hinweis: Die M1-Dateien in `data/testset/maestro/` sind lokal nicht mehr vorhanden. Die MAESTRO-Einträge legen `fetch` deshalb wieder dort ab (`maestro/<id>.wav` + `.midi`), damit `test_accuracy.py` unverändert weiterläuft.
+Taktarten laut ASAP-Annotationen beim Festlegen prüfen. Ziel: neben 4/4 auch 3/4, 2/4 und ein zusammengesetzter Takt (3/8 oder 6/8). Hinweis: Die M1-Dateien in `data/testset/maestro/` sind lokal nicht mehr vorhanden, und ihre MAESTRO-Pfade waren nirgends festgehalten. Ab jetzt hält das Manifest den genauen Pfad im Zip fest (`fetch.maestro_audio`). Die MAESTRO-Einträge legen `fetch` wieder in `maestro/` ab (`<id>.wav` + `.midi`), damit `test_accuracy.py` weiterläuft.
 
 ## Implementation Sequence
-1. **Abhängigkeiten + Eval-Modul**: `pyyaml`, `mir_eval` nach `dependencies`. `eval/notes.py` mit `note_prf`, `note_f1`, `read_midi_notes` (aus `test_accuracy.py`, TDD: Tests zuerst verschieben). `test_accuracy.py` importiert von dort.
+1. **Abhängigkeiten + Eval-Modul**: `pyyaml`, `mir_eval` nach `dependencies`. `eval/notes.py` mit `note_prf`, `note_f1`, `read_midi_notes` (aus `test_accuracy.py`, TDD: Tests zuerst verschieben). `test_accuracy.py` importiert von dort. Fehlen die Daten, nennt der Skip-Grund die fehlenden Dateien und den Befehl `audio2score testset fetch --only maestro-…`, damit das Überspringen nicht untergeht. Fehlende Dateien meldet zusätzlich `testset check`.
    - Files: `pyproject.toml`, `src/audio2score/eval/*`, `tests/test_eval_notes.py`, `tests/integration/test_accuracy.py`
    - Depends on: nothing
 2. **Manifest-Modell + Validierung** (TDD): Laden, Pfade auflösen, alle Fehler sammeln (Pflichtfelder, Enums, doppelte IDs, weder `audio` noch `ref_midi`, `fetch` unvollständig, `start ≥ end`, absolute oder aus `data_dir` herausführende Pfade).
@@ -169,7 +169,7 @@ Taktarten laut ASAP-Annotationen beim Festlegen prüfen. Ziel: neben 4/4 auch 3/
 6. **Lauf + Baseline + CLI** (TDD mit Fake-Backend): `transcribe_all` (Cache-Treffer, Überspringen ohne Audio, Fehler pro Stück), `baseline` (F1 bekannter Werte, keine Referenz, nicht transkribiert, Mittelwerte), CLI-Unterbefehle mit Exit-Codes.
    - Files: `testset/run.py`, `cli.py`, `tests/test_testset_run.py`, `tests/test_cli_testset.py`
    - Depends on: Steps 1–5
-7. **Manifest befüllen + echter Download**: ASAP-Kandidaten aus `metadata.csv` (gepinnter Commit) eintragen, inkl. `start`/`end` und MAESTRO-Pfad. MAESTRO-Pfade der drei M1-Stücke aus `maestro-v3.0.0.csv` bestimmen. Ivanov-Eintrag (Datei nach `internet/` verschieben). `testset fetch` real ausführen, dann `check`. **Versatz prüfen:** ASAP-Performance-MIDI gegen das zugeschnittene Audio. Kontrolle über die MAESTRO-MIDI desselben Bereichs: Onsets − `start` müssen mit der ASAP-MIDI übereinstimmen (±10 ms). Sonst Korrektur in `fetch` (Referenz-MIDI verschieben oder Audio anders schneiden) und dokumentieren.
+7. **Manifest befüllen + echter Download**: ASAP-Kandidaten aus `metadata.csv` (gepinnter Commit) eintragen, inkl. `start`/`end` und MAESTRO-Pfad. MAESTRO-Pfade der M1-Stücke eintragen (siehe Tabelle). Für Schubert op. 90/4 die Fassung wählen, deren F1 nach Schritt 9 die M1-Werte reproduziert (roh 0,988 / bereinigt 0,988). Ist das keine, die kürzeste Fassung (113 s) nehmen und die Abweichung zu M1 dokumentieren. Ivanov-Eintrag (Datei nach `internet/` verschieben). `testset fetch` real ausführen, dann `check`. **Versatz prüfen:** ASAP-Performance-MIDI gegen das zugeschnittene Audio. Kontrolle über die MAESTRO-MIDI desselben Bereichs: Onsets − `start` müssen mit der ASAP-MIDI übereinstimmen (±10 ms). Sonst Korrektur in `fetch` (Referenz-MIDI verschieben oder Audio anders schneiden) und dokumentieren.
    - Files: `testset/manifest.yaml`, `testset/README.md`
    - Depends on: Step 5
 8. **Eigene Aufnahmen**: Der User liefert ≥ 1 Pop-, Jazz- und Impro-Aufnahme (Handy/Internet) mit Lizenz-/Herkunftsangabe. Einträge ohne `fetch`. Bis dahin meldet `check` sie als fehlend. Das Akzeptanzkriterium „≥ 1 je Stil“ ist erst danach erfüllt.
@@ -202,4 +202,4 @@ Taktarten laut ASAP-Annotationen beim Festlegen prüfen. Ziel: neben 4/4 auch 3/
 - **Lizenzen**: MAESTRO und ASAP CC BY-NC-SA 4.0 (Hobby, nicht kommerziell → ok, im Manifest vermerkt). Internet-Mitschnitte bleiben lokal, `fetch` lädt sie nicht.
 - **Cache-Schlüssel = Datei-Hash**: Zuschnitt und FLAC-Kodierung müssen deterministisch sein (gleiche Version von `soundfile`/libsndfile), sonst werden neu geladene Dateien neu transkribiert. Akzeptabel; im README erwähnen.
 - [ ] Eigene Pop-/Jazz-/Impro-Aufnahmen: liefert der User (Schritt 8). Bis dahin ist das Kriterium „≥ 1 je Stil“ offen.
-- [ ] Welche Chopin-Etüde war das M1-Stück (Op. 10/9 nicht im Test-Split gefunden)? Bei Bedarf eine andere kurze Chopin-Etüde nehmen.
+- [ ] Schubert op. 90/4: Die genaue M1-Fassung ist unbekannt (5 Kandidaten im Test-Split). Sie wird über die F1-Werte aus M1 wiedergefunden (Schritt 7/9), sonst gilt die dokumentierte Abweichung.
