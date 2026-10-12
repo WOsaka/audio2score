@@ -7,7 +7,9 @@ import typer
 from audio2score import __version__
 from audio2score.audio.load import AudioLoadError
 from audio2score.export.midi import write_midi
-from audio2score.pipeline import transcribe_file
+from audio2score.pipeline import score_file, transcribe_file
+from audio2score.rhythm.base import RhythmError
+from audio2score.rhythm.meter import parse_time_sig
 from audio2score.transcribe import available_backends
 from audio2score.transcribe.base import BackendUnavailableError, ModelDownloadError
 
@@ -109,6 +111,89 @@ def transcribe(
     typer.echo(f"Pedal-Events: {len(nl.pedals)}")
     typer.echo(f"Laufzeit: {result.elapsed:.1f} s" + (" (aus Cache)" if result.cache_hit else ""))
     typer.echo(f"MIDI: {output}")
+
+
+def _check_time_sig(value: str | None) -> str | None:
+    if value is not None:
+        try:
+            parse_time_sig(value)
+        except ValueError as e:
+            raise typer.BadParameter(str(e)) from e
+    return value
+
+
+_SOURCE_LABELS = {"detected": "erkannt", "given": "vorgegeben", "default": "Standard"}
+
+
+@app.command()
+def score(
+    audio: Path = typer.Argument(..., help="Audiodatei (wav, flac, mp3, m4a, ogg, ...)"),
+    output: Path = typer.Option(..., "-o", "--output", help="Zielordner (wird angelegt)"),
+    time_sig: str | None = typer.Option(
+        None,
+        "--time-sig",
+        callback=_check_time_sig,
+        help="Taktart vorgeben: 2/4, 3/4, 4/4, 3/8, 6/8, 9/8, 12/8 (sonst automatisch)",
+    ),
+    backend: str = typer.Option(
+        "bytedance", "--backend", callback=_check_backend, help="bytedance | basic-pitch"
+    ),
+    cache_dir: Path | None = typer.Option(
+        None, "--cache-dir", help="Cache-Ordner (sonst AUDIO2SCORE_CACHE, sonst ./cache)"
+    ),
+    no_cache: bool = typer.Option(False, "--no-cache", help="Cache weder lesen noch schreiben"),
+    checkpoint: Path | None = typer.Option(
+        None, "--checkpoint", help="Modellgewichte (nur bytedance)"
+    ),
+) -> None:
+    """Audio zu Partitur: MusicXML, quantisiertes MIDI und Beat-Datei."""
+    typer.echo(f"Backend: {backend}")
+
+    def on_download(done: int, total: int) -> None:
+        shown = f"{done / 1e6:.0f} / {total / 1e6:.0f} MB" if total else f"{done / 1e6:.0f} MB"
+        typer.echo(f"\rModellgewichte laden: {shown}", err=True, nl=False)
+        if total and done >= total:
+            typer.echo(err=True)
+
+    try:
+        result = score_file(
+            audio,
+            output,
+            time_sig=parse_time_sig(time_sig) if time_sig else None,
+            backend=backend,
+            cache_dir=cache_dir,
+            use_cache=not no_cache,
+            checkpoint=checkpoint,
+            on_download=on_download,
+            on_transcribe=lambda: typer.echo("Transkribiere ..."),
+            on_beats=lambda: typer.echo("Erkenne Beats ..."),
+        )
+    except (AudioLoadError, BackendUnavailableError, ModelDownloadError, RhythmError) as e:
+        raise _fail(str(e)) from e
+    except OSError as e:
+        raise _fail(f"{e.strerror or e}: {e.filename or ''}".strip()) from e
+
+    grid = result.grid
+    meter = grid.meter
+    typer.echo(f"Taktart: {meter.numerator}/{meter.denominator} ({_SOURCE_LABELS[meter.source]})")
+    typer.echo(f"Tempo: {round(grid.tempo_bpm)} BPM")
+    typer.echo(f"Takte: {result.bars}")
+    typer.echo("Auftakt: " + ("ja" if grid.pickup_steps else "nein"))
+    typer.echo(f"Noten: rechte Hand {result.right_notes}, linke Hand {result.left_notes}")
+    for warning in result.warnings:
+        typer.echo(f"Warnung: {warning}", err=True)
+    cached = [
+        label
+        for label, hit in (("Noten", result.notes_cache_hit), ("Beats", result.beats_cache_hit))
+        if hit
+    ]
+    typer.echo(
+        f"Laufzeit: {result.elapsed:.1f} s"
+        + (f" ({' und '.join(cached)} aus Cache)" if cached else "")
+    )
+    typer.echo(f"MusicXML: {result.musicxml}")
+    typer.echo(f"MIDI: {result.midi}")
+    typer.echo(f"Beats: {result.beats_json}")
 
 
 # --- testset ---------------------------------------------------------------------------

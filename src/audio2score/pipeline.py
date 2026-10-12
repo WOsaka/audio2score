@@ -6,10 +6,16 @@ from pathlib import Path
 from audio2score import cache
 from audio2score.audio.load import SAMPLE_RATE, AudioLoadError, load_audio
 from audio2score.cleanup.notes import cleanup
+from audio2score.export.beats import write_beats_json
+from audio2score.export.quantized_midi import write_quantized_midi
 from audio2score.model import NoteList
 from audio2score.rhythm import get_beat_tracker
-from audio2score.rhythm.base import Beats, BeatTracker
+from audio2score.rhythm.base import Beats, BeatTracker, RhythmError
 from audio2score.rhythm.beat_this import SAMPLE_RATE as BEAT_SAMPLE_RATE
+from audio2score.rhythm.meter import Grid, build_grid
+from audio2score.rhythm.quantize import quantize
+from audio2score.score.hands import split_hands
+from audio2score.score.voices import single_voice
 from audio2score.transcribe import get_transcriber
 
 
@@ -124,3 +130,76 @@ def detect_beats(
     if use_cache:
         cache.save_beats(directory, key, beats)
     return beats, False
+
+
+@dataclass
+class ScoreResult:
+    musicxml: Path
+    midi: Path
+    beats_json: Path
+    grid: Grid
+    bars: int
+    right_notes: int
+    left_notes: int
+    warnings: list[str]
+    notes_cache_hit: bool
+    beats_cache_hit: bool
+    elapsed: float
+
+
+def score_file(
+    audio_path: Path,
+    out_dir: Path,
+    time_sig: tuple[int, int] | None = None,
+    backend: str = "bytedance",
+    cache_dir: Path | None = None,
+    use_cache: bool = True,
+    checkpoint: Path | None = None,
+    on_download: Callable[[int, int], None] | None = None,
+    on_transcribe: Callable[[], None] | None = None,
+    on_beats: Callable[[], None] | None = None,
+    tracker: BeatTracker | None = None,
+) -> ScoreResult:
+    """Teil A (Cache oder Transkription, Beats) → Teil B (Partitur) → drei Dateien.
+
+    Geschrieben wird erst, wenn alles berechnet ist: Bei einem Fehler entstehen keine Dateien.
+    """
+    # music21 braucht ~0,5 s beim Import; die anderen Befehle sollen davon nichts merken
+    from audio2score.export.musicxml import write_musicxml
+    from audio2score.score.build import build_score
+
+    start = time.perf_counter()
+    audio_path = Path(audio_path)
+    transcription = transcribe_file(
+        audio_path, backend, cache_dir, use_cache, True, checkpoint, on_download, on_transcribe
+    )
+    notes = transcription.notelist.notes
+    if not notes:
+        raise RhythmError("Keine Noten erkannt")
+    beats, beats_hit = detect_beats(audio_path, cache_dir, use_cache, tracker, on_beats)
+
+    grid = build_grid(beats, notes, time_sig)
+    right, left = split_hands(quantize(notes, grid))
+    right, left = single_voice(right), single_voice(left)
+    score = build_score(right, left, grid, audio_path.stem)
+
+    out_dir = Path(out_dir)
+    musicxml = out_dir / f"{audio_path.stem}.musicxml"
+    midi = out_dir / f"{audio_path.stem}.quantized.mid"
+    beats_json = out_dir / f"{audio_path.stem}.beats.json"
+    write_musicxml(score, musicxml)
+    write_quantized_midi(right, left, grid, midi)
+    write_beats_json(grid, beats, beats_json, audio_path.name)
+    return ScoreResult(
+        musicxml,
+        midi,
+        beats_json,
+        grid,
+        grid.bars,
+        len(right),
+        len(left),
+        list(grid.warnings),
+        transcription.cache_hit,
+        beats_hit,
+        time.perf_counter() - start,
+    )
