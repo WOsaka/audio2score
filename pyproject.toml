@@ -18,6 +18,8 @@ dependencies = [
     "pretty_midi",
     "numpy",
     "typer",
+    "pyyaml",
+    "mir_eval",
 ]
 
 [project.optional-dependencies]
@@ -33,7 +35,6 @@ basic-pitch = [
 dev = [
     "pytest",
     "ruff",
-    "mir_eval",
 ]
 
 [project.scripts]

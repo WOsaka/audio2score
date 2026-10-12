@@ -18,6 +18,30 @@ class TranscriptionResult:
     elapsed: float
 
 
+def cached_transcription(
+    audio_path: Path,
+    backend: str = "bytedance",
+    cache_dir: Path | None = None,
+    do_cleanup: bool = True,
+) -> TranscriptionResult | None:
+    """Nur den Cache lesen: kein Audio laden, kein Modell laden. None bei einem Fehltreffer."""
+    start = time.perf_counter()
+    audio_path = Path(audio_path)
+    if not audio_path.is_file():
+        raise AudioLoadError(f"Datei nicht gefunden: {audio_path}")
+    transcriber = get_transcriber(backend)  # lädt das Modell erst bei transcribe()
+    key = cache.cache_key(audio_path, transcriber)
+    raw = cache.load(cache.resolve_cache_dir(cache_dir), key)
+    if raw is None:
+        return None
+    return _result(raw, do_cleanup, True, start)
+
+
+def _result(raw: NoteList, do_cleanup: bool, cache_hit: bool, start: float) -> TranscriptionResult:
+    notelist = cleanup(raw) if do_cleanup else raw
+    return TranscriptionResult(notelist, len(raw.notes), cache_hit, time.perf_counter() - start)
+
+
 def transcribe_file(
     audio_path: Path,
     backend: str = "bytedance",
@@ -55,5 +79,4 @@ def transcribe_file(
         if use_cache:
             cache.save(directory, key, raw)
 
-    notelist = cleanup(raw) if do_cleanup else raw
-    return TranscriptionResult(notelist, len(raw.notes), cache_hit, time.perf_counter() - start)
+    return _result(raw, do_cleanup, cache_hit, start)

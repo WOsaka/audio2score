@@ -64,6 +64,18 @@ Auf der CPU dauert die erste Transkription etwa so lange wie die Aufnahme selbst
 Das Aufräumen entfernt zu kurze (< 30 ms) und zu leise Noten sowie leise Oktav-Geisternoten. Die MIDI-Datei enthält
 Tasten-Offsets (nicht pedal-verlängert) und das Sustain-Pedal als CC64.
 
+## Testset
+
+Feste Sammlung von 12 Stücken mit Referenzen (Manifest: `testset/manifest.yaml`, Details:
+`testset/README.md`). Die Daten liegen unter `data/testset/` und sind nicht eingecheckt.
+
+```powershell
+audio2score testset fetch        # ASAP- und MAESTRO-Stücke laden (fortsetzbar)
+audio2score testset check        # Vollständigkeit und Lesbarkeit prüfen
+audio2score testset transcribe   # Teil A in den Cache (fortsetzbar, ~Echtzeit auf der CPU)
+audio2score testset baseline     # Note-F1 pro Stück, Mittel pro Stil/Qualität, ohne Modelllauf
+```
+
 ## Tests
 
 ```powershell
@@ -73,7 +85,8 @@ ruff check . ; ruff format .
 ```
 
 Der Genauigkeitstest (Note-F1 ≥ 0,90) erwartet MAESTRO-Paare `name.wav` + `name.midi` in
-`data/testset/maestro/` (nicht eingecheckt) und wird sonst übersprungen.
+`data/testset/maestro/` (laden mit `audio2score testset fetch`) und wird sonst übersprungen.
+`tests/integration/test_testset_real.py` prüft das ganze Testset.
 
 ## Lizenzen
 
