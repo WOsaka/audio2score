@@ -50,7 +50,9 @@ def write_quantized_midi(right: list[QNote], left: list[QNote], grid: Grid, path
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     s = grid.meter.steps_per_beat
-    times = grid.beat_times
+    # Das MIDI beginnt bei Audio-Zeit 0; ein davor fortgesetztes Raster wird dort gekappt
+    # (der erste Beat wird entsprechend kürzer).
+    times = [max(grid.beat_times[0], 0.0), *grid.beat_times[1:]]
     lead = _lead_in_steps(grid, times[0])
     offset = lead * TICKS_PER_STEP
 

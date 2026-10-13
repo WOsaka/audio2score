@@ -122,6 +122,17 @@ def test_midi_survives_a_very_long_lead_in(tmp_path):
     assert r[0].start == pytest.approx(100.0, abs=0.01)
 
 
+def test_midi_with_grid_starting_before_zero_stays_in_sync(tmp_path):
+    # Beat-Raster wurde vor 0 s fortgesetzt (Note vor dem ersten erkannten Beat)
+    times = [-0.3 + i * 0.5 for i in range(9)]
+    grid = midi_grid(times)
+    right = [QNote(72, 4, 4, 80), QNote(74, 8, 4, 80)]  # Beat 1 (0,2 s), Beat 2 (0,7 s)
+    write_quantized_midi(right, [], grid, tmp_path / "n.mid")
+    _, (r, _) = read_notes(tmp_path / "n.mid")
+    assert r[0].start == pytest.approx(0.2, abs=0.01)
+    assert r[1].start == pytest.approx(0.7, abs=0.01)
+
+
 def test_midi_repeated_pitch_does_not_overlap(tmp_path):
     grid = midi_grid([0.5 + i * 0.5 for i in range(9)])
     right = [QNote(72, 0, 4, 80), QNote(72, 4, 4, 80)]
